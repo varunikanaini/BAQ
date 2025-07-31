@@ -1,0 +1,76 @@
+# -----------------------------
+# Python-specific
+# -----------------------------
+__pycache__/
+*.py[cod]
+*.so
+*.pyd
+*.pyo
+*.egg
+*.egg-info/
+dist/
+build/
+.env
+.venv
+*.log
+
+# -----------------------------
+# Jupyter Notebooks
+# -----------------------------
+.ipynb_checkpoints/
+
+# -----------------------------
+# Dataset & Output Folders
+# -----------------------------
+datasets/
+data/
+outputs/
+results/
+
+# -----------------------------
+# Model Checkpoints & Weights
+# -----------------------------
+*.pt
+*.pth
+*.ckpt
+*.h5
+*.tflite
+*.onnx
+*.pb
+
+# -----------------------------
+# Experiment Artifacts
+# -----------------------------
+runs/
+checkpoints/
+logs/
+wandb/
+*.tensorboard
+
+# -----------------------------
+# IDEs & Editors
+# -----------------------------
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
+
+# -----------------------------
+# Git / OS-specific
+# -----------------------------
+*.bak
+*.tmp
+*.log
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# -----------------------------
+# Custom folders
+# -----------------------------
+cache/
+temp/
+test_outputs/
+results/
+baq/

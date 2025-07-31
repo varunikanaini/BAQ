@@ -1,6 +1,6 @@
 import numpy as np
 import torch
-
+import datasets
 
 def set_seed(seed):
     np.random.seed(seed)
@@ -28,6 +28,55 @@ def get_wikitext2(nsamples, seed, seqlen, model):
         tar[:, :-1] = -100
         trainloader.append((inp, tar))
     return trainloader, testenc
+
+
+def get_gsm8k(nsamples, seed, seqlen, model):
+    from datasets import load_dataset
+    from transformers import AutoTokenizer
+    import random
+
+    print(f"Loading GSM8K dataset. Using sequence length: {seqlen}")
+
+    traindata = load_dataset("openai/gsm8k", "main", split="train")
+    testdata = load_dataset("openai/gsm8k", "main", split="test") # Test loader isn't used by calib, but good practice
+
+    # Load tokenizer
+    tokenizer = AutoTokenizer.from_pretrained(model, use_fast=False)
+
+    # Prepare calibration samples
+    train_text_samples = [d["question"] + " " + d["answer"] for d in traindata]
+    random.seed(seed)
+    random.shuffle(train_text_samples)
+
+    trainloader = []
+    print(f"Tokenizing {nsamples} calibration samples...")
+    # Tokenize each sample individually to the correct sequence length
+    for text in train_text_samples[:nsamples]:
+        # Let the tokenizer handle truncation and padding to the model's max length
+        enc = tokenizer(
+            text,
+            return_tensors="pt",
+            max_length=seqlen,  # This will be 16384 for your model
+            truncation=True,
+            padding="max_length" # Ensure all tensors have the same shape
+        )
+        
+        inp = enc.input_ids
+        tar = inp.clone()
+        tar[:, :-1] = -100
+        trainloader.append((inp, tar))
+
+    # The test loader is not used in the calibration script you are running,
+    # but we will prepare it correctly anyway.
+    val_text_samples = [d["question"] for d in testdata]
+    valenc = tokenizer(" ".join(val_text_samples[:256]), return_tensors="pt")
+    
+    class TokenizerWrapper:
+        def __init__(self, input_ids):
+            self.input_ids = input_ids
+    valenc = TokenizerWrapper(valenc.input_ids)
+
+    return trainloader, valenc
 
 def get_ptb(nsamples, seed, seqlen, model):
     from datasets import load_dataset
@@ -163,6 +212,8 @@ def get_c4_new(nsamples, seed, seqlen, model):
 def get_loaders(
     name, nsamples=128, seed=0, seqlen=2048, model=''
 ):
+    if 'gsm8k' in name:
+        return get_gsm8k(nsamples, seed, seqlen, model)               
     if 'wikitext2' in name:
         return get_wikitext2(nsamples, seed, seqlen, model)
     if 'ptb' in name:
